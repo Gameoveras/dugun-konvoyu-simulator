@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Korna Party: Düğün Konvoyu Madness</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f0f0;
+            font-family: 'Arial', sans-serif;
+            background-image: url('https://img.freepik.com/free-vector/hand-painted-watercolor-pastel-sky-background_23-2148902771.jpg');
+            background-size: cover;
+        }
+        
+        canvas {
+            display: block;
+            margin: 20px auto;
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+            border-radius: 8px;
+        }
+        
+        #gameContainer {
+            position: relative;
+        }
+        
+        #instructions {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #e63946;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+        }
+        
+        h2 {
+            text-align: center;
+            color: #457b9d;
+            margin-top: 0;
+            font-size: 18px;
+        }
+        
+        ul {
+            margin-top: 10px;
+        }
+        
+        .key {
+            display: inline-block;
+            background-color: #f1faee;
+            border: 1px solid #a8dadc;
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-weight: bold;
+        }
+        
+        #controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .control-btn {
+            background-color: #e63946;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 16px;
+            margin: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 3px 5px rgba(0,0,0,0.2);
+            transition: all 0.2s;
+        }
+        
+        .control-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 8px rgba(0,0,0,0.3);
+        }
+        
+        .control-btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 3px rgba(0,0,0,0.2);
+        }
+        
+        #volumeControls {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+        
+        #volumeControls label {
+            margin-right: 10px;
+        }
+        
+        .modeSwitch {
+            margin-top: 15px;
+            background-color: #457b9d;
+        }
+        
+        #splashScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 10;
+            border-radius: 8px;
+        }
+        
+        #startButton {
+            background-color: #e63946;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 15px 30px;
+            margin-top: 20px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            box-shadow: 0 3px 5px rgba(0,0,0,0.2);
+            transition: all 0.2s;
+        }
+        
+        #startButton:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 8px rgba(0,0,0,0.3);
+        }
+        
+        .modeSelection {
+            display: flex;
+            margin: 15px 0;
+        }
+        
+        .modeBtn {
+            background-color: #457b9d;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 16px;
+            margin: 0 5px;
+            cursor: pointer;
+            opacity: 0.7;
+        }
+        
+        .modeBtn.active {
+            opacity: 1;
+            box-shadow: 0 0 10px #a8dadc;
+        }
+        
+        #achievement {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255, 215, 0, 0.9);
+            padding: 10px 20px;
+            border-radius: 20px;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.7);
+            display: none;
+            z-index: 100;
+            animation: slideDown 0.5s ease-out;
+        }
+        
+        @keyframes slideDown {
+            from { top: -50px; opacity: 0; }
+            to { top: 20px; opacity: 1; }
+        }
+    </style>
+    <!-- P5.js kütüphanesi -->
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/p5.min.js"></script>
+    <script src="oyun.js" defer></script>
+</head>
+<body>
+    <h1>Korna Party: Düğün Konvoyu Madness</h1>
+    <h2>Düğün konvoyunda korna çalarak insanları selamla!</h2>
+    
+    <div id="gameContainer">
+        <!-- Canvas buraya yerleştirilecek -->
+        <div id="splashScreen">
+            <h1 style="font-size: 36px;">Korna Party</h1>
+            <h2 style="color: white;">Düğün Konvoyu Madness</h2>
+            <div class="modeSelection">
+                <button class="modeBtn active" data-mode="normal">Normal Mod</button>
+                <button class="modeBtn" data-mode="crazy">Çılgın Konvoy</button>
+                <button class="modeBtn" data-mode="night">Gece Konvoyu</button>
+            </div>
+            <button id="startButton">OYUNA BAŞLA</button>
+        </div>
+        <div id="achievement">🏆 Başarı Kazanıldı: Korna Ustası!</div>
+    </div>
+    
+    <div id="instructions">
+        <h3>Nasıl Oynanır:</h3>
+        <ul>
+            <li><span class="key">SPACE</span> - Korna çal</li>
+            <li><span class="key">&#8593;</span> <span class="key">&#8595;</span> - Arabayı yukarı/aşağı hareket ettir</li>
+            <li><span class="key">P</span> - Oyunu duraklat</li>
+            <li><span class="key">ENTER</span> - Oyun bittiğinde tekrar başlat</li>
+        </ul>
+        <p><strong>Amaç:</strong> Evlerdeki insanlara korna çalarak selam ver ve puan topla! Engellere dikkat et ve güçlendiricileri yakala.</p>
+        <p><strong>Güçlendiriciler:</strong></p>
+        <ul>
+            <li>🔔 <strong>Süper Korna</strong> - Kornayı güçlendirir ve 2x puan kazandırır</li>
+            <li>⏱️ <strong>Ekstra Zaman</strong> - Oyun süresine 10 saniye ekler</li>
+            <li>🚀 <strong>Turbo Hız</strong> - Geçici olarak daha hızlı hareket etmenizi sağlar</li>
+            <li>🌟 <strong>Puan Çarpanı</strong> - Kısa süreliğine 3x puan kazandırır</li>
+        </ul>
+        
+        <div id="controls">
+            <div class="control-group">
+                <button id="honkBtn" class="control-btn">KORNA ÇAL</button>
+                <button id="pauseBtn" class="control-btn">DURAKLAT</button>
+            </div>
+            
+            <div class="control-group">
+                <button id="upBtn" class="control-btn">YUKARI</button>
+                <button id="downBtn" class="control-btn">AŞAĞI</button>
+            </div>
+            
+            <div class="control-group">
+                <button id="resetBtn" class="control-btn">YENİDEN BAŞLAT</button>
+                <button id="modeBtn" class="control-btn modeSwitch">MOD DEĞİŞTİR</button>
+            </div>
+        </div>
+        
+        <div id="volumeControls">
+            <label for="musicVolume">Müzik Sesi:</label>
+            <input type="range" id="musicVolume" min="0" max="1" step="0.1" value="0.5">
+            
+            <label for="sfxVolume" style="margin-left: 20px;">Efekt Sesi:</label>
+            <input type="range" id="sfxVolume" min="0" max="1" step="0.1" value="0.7">
+        </div>
+    </div>
+</body>
+</html>
