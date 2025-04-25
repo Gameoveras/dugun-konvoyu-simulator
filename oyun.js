@@ -1097,6 +1097,8 @@ class Car {
         } else if (type === 'magnet') {
             this.powerups.effects.magnet.active = true;
             this.powerups.scoreMultiplier = this.powerups.effects.magnet.scoreMultiplier;
+        } else if (type === 'speedBoost') {
+            this.baseSpeed = 4; // Hızı 2 katına çıkar
         }
     }
     
@@ -1106,6 +1108,7 @@ class Car {
         this.powerups.effects.shield.active = false;
         this.powerups.effects.magnet.active = false;
         this.powerups.scoreMultiplier = 1;
+        this.baseSpeed = 2; // Hızı normale döndür
     }
     
     checkCollision(other) {
@@ -1415,7 +1418,7 @@ class Powerup {
         this.h = 25;
         this.x = width + random(50, 150);
         this.y = height * 0.75 - random(40, 80);
-        this.type = random(["superHorn", "turbo", "multiplier", "shield", "timeFreeze", "magnet", "clone", "extraTime"]);
+        this.type = random(["superHorn", "turbo", "multiplier", "shield", "timeFreeze", "magnet", "clone", "extraTime", "speedBoost"]);
         this.speed = 2 + (level - 1) * 0.2;
         if (gameMode === "crazy") {
             this.speed *= 1.4;
@@ -1500,6 +1503,14 @@ class Powerup {
                 textAlign(CENTER, CENTER);
                 text("+10s", this.x + this.w / 2, this.y + this.h / 2 + this.floatOffset);
                 break;
+            case "speedBoost":
+                fill(255, 0, 0);
+                ellipse(this.x + this.w / 2, this.y + this.h / 2 + this.floatOffset, this.w, this.h);
+                fill(255);
+                textSize(14);
+                textAlign(CENTER, CENTER);
+                text("⚡", this.x + this.w / 2, this.y + this.h / 2 + this.floatOffset);
+                break;
         }
         
         textSize(20);
@@ -1525,6 +1536,7 @@ class Powerup {
                 case "timeFreeze": powerupName = "Zaman Dondurma"; break;
                 case "magnet": powerupName = "Mıknatıs"; break;
                 case "clone": powerupName = "Klon"; break;
+                case "speedBoost": powerupName = "Hız Artışı"; break;
             }
             showAchievement("Güçlendirici: " + powerupName, 2000);
         }
