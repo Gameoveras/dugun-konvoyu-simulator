@@ -15,7 +15,7 @@ let level = 1; // Mevcut seviye
 let powerups = []; // Güçlendiriciler
 let highScore = 0; // En yüksek skor
 let gameCanvas; // Oyun tuvali
-let gameMode = "normal"; // Oyun modu: normal, crazy, night
+let gameMode = "normal"; // Oyun modu: normal, crazy, night, zombie, rainbow, boss
 let achievements = []; // Başarılar
 
 // Ses dosyaları
@@ -195,6 +195,18 @@ function configureGameMode() {
         case "night":
             gameTime = 75;
             break;
+        case "zombie":
+            gameTime = 60;
+            spawnInterval = 120;
+            break;
+        case "rainbow":
+            gameTime = 60;
+            spawnInterval = 150;
+            break;
+        case "boss":
+            gameTime = 90;
+            spawnInterval = 200;
+            break;
         default:
             gameTime = 60;
             spawnInterval = 150;
@@ -203,7 +215,7 @@ function configureGameMode() {
 
 // Oyun modları arasında geçiş yapma
 function cycleGameMode() {
-    const modes = ["normal", "crazy", "night"];
+    const modes = ["normal", "crazy", "night", "zombie", "rainbow", "boss"];
     const currentIndex = modes.indexOf(gameMode);
     const nextIndex = (currentIndex + 1) % modes.length;
     gameMode = modes[nextIndex];
@@ -404,6 +416,16 @@ function drawBackground() {
         background(20, 24, 82);
     } else if (gameMode === "crazy") {
         background(255, 182, 193);
+    } else if (gameMode === "zombie") {
+        background(20, 0, 0);
+    } else if (gameMode === "rainbow") {
+        background(
+            sin(frameCount * 0.01) * 127 + 128,
+            sin(frameCount * 0.01 + 2) * 127 + 128,
+            sin(frameCount * 0.01 + 4) * 127 + 128
+        );
+    } else if (gameMode === "boss") {
+        background(40, 40, 40);
     } else {
         background(135, 206, 235);
     }
@@ -422,6 +444,8 @@ function updateAndDrawDecorations() {
                 case "tree": d.y = height * 0.65 - random(30, 60); break;
                 case "star": d.y = random(height / 2); d.twinkle = random(0, 100); break;
                 case "balloon": d.y = random(height / 3); d.color = [random(100, 255), random(100, 255), random(100, 255)]; break;
+                case "zombie": d.y = random(height * 0.5, height * 0.7); break;
+                case "boss": d.y = random(height * 0.3, height * 0.6); break;
             }
         }
         
@@ -431,6 +455,8 @@ function updateAndDrawDecorations() {
             case "star": drawStar(d.x, d.y, d.size, d.twinkle); break;
             case "moon": drawMoon(d.x, d.y, d.size); break;
             case "balloon": drawBalloon(d.x, d.y, d.size, d.color); break;
+            case "zombie": drawZombie(d.x, d.y, d.size); break;
+            case "boss": drawBoss(d.x, d.y, d.size); break;
         }
     }
 }
@@ -475,6 +501,29 @@ function drawBalloon(x, y, size, balloonColor) {
     strokeWeight(1);
     line(x, y + size * 0.6, x, y + size * 1.2);
     noStroke();
+}
+
+function drawZombie(x, y, size) {
+    if (gameMode === "zombie") {
+        fill(0, 150, 0);
+        ellipse(x, y, size, size * 1.2);
+        fill(0, 100, 0);
+        ellipse(x, y - size * 0.3, size * 0.8, size * 0.8);
+        fill(255, 0, 0);
+        ellipse(x - size * 0.2, y - size * 0.3, size * 0.2, size * 0.2);
+        ellipse(x + size * 0.2, y - size * 0.3, size * 0.2, size * 0.2);
+    }
+}
+
+function drawBoss(x, y, size) {
+    if (gameMode === "boss" && level % 5 === 0) {
+        fill(255, 0, 0);
+        ellipse(x, y, size * 2, size * 2);
+        fill(255);
+        textSize(size * 0.5);
+        textAlign(CENTER, CENTER);
+        text("BOSS", x, y);
+    }
 }
 
 // Yol çizimi
@@ -701,6 +750,36 @@ function checkAchievements() {
         achievements.push("highLevel");
         showAchievement("🌟 Başarı: Konvoy Liderliği!", 3000);
     }
+
+    if (car.waveCount >= 100 && !achievements.includes("convoyMaster")) {
+        achievements.push("convoyMaster");
+        showAchievement("👑 Başarı: Konvoy Ustası!", 3000);
+    }
+
+    if (score >= 500 && !achievements.includes("speedDemon")) {
+        achievements.push("speedDemon");
+        showAchievement("⚡ Başarı: Hız Canavarı!", 3000);
+    }
+
+    if (level >= 5 && !car.hasCollided && !achievements.includes("protector")) {
+        achievements.push("protector");
+        showAchievement("🛡️ Başarı: Koruyucu!", 3000);
+    }
+
+    if (car.powerups.collectedPoints >= 100 && !achievements.includes("magnetMaster")) {
+        achievements.push("magnetMaster");
+        showAchievement("🧲 Başarı: Mıknatıs Ustası!", 3000);
+    }
+    
+    if (score >= 1000 && !achievements.includes("scoreKing")) {
+        achievements.push("scoreKing");
+        showAchievement("👑 Başarı: Puan Kralı!", 3000);
+    }
+    
+    if (car.powerups.scoreMultiplier >= 3 && !achievements.includes("multiplierMaster")) {
+        achievements.push("multiplierMaster");
+        showAchievement("✨ Başarı: Çarpan Ustası!", 3000);
+    }
 }
 
 // Konvoy oluşturma
@@ -751,8 +830,13 @@ class Car {
                 superHorn: { rangeMultiplier: 2.0, duration: 450 },
                 turbo: { multiplier: 1.5, duration: 600 },
                 multiplier: { duration: 600 },
-                shield: { active: false, duration: 300 }
-            }
+                shield: { active: false, duration: 300 },
+                timeFreeze: { duration: 300 },
+                magnet: { active: false, duration: 450, range: 300, scoreMultiplier: 2 },
+                clone: { active: false, duration: 600 }
+            },
+            scoreMultiplier: 1,
+            collectedPoints: 0
         };
         
         this.collisionBox = {
@@ -792,6 +876,10 @@ class Car {
         this.updatePowerups();
         this.updatePhysics();
         this.updateTrails();
+        if (this.hasPowerup('magnet')) {
+            this.attractPowerups();
+            this.attractPoints();
+        }
     }
     
     followLeader(leader) {
@@ -858,6 +946,9 @@ class Car {
         this.drawHornEffect();
         this.drawTrails();
         if (this.powerups.effects.shield.active) this.drawShield();
+        if (this.hasPowerup('magnet')) {
+            this.drawMagnetEffect();
+        }
     }
     
     drawBody() {
@@ -942,6 +1033,26 @@ class Car {
         ellipse(this.x + this.w / 2, this.y + this.h / 2, this.w * 1.5);
     }
     
+    drawMagnetEffect() {
+        // Mıknatıs alanı efekti
+        noFill();
+        stroke(255, 255, 0, 100);
+        strokeWeight(2);
+        ellipse(this.x + this.w / 2, this.y + this.h / 2, 
+                this.powerups.effects.magnet.range * 2, 
+                this.powerups.effects.magnet.range * 2);
+        
+        // Titreşim efekti
+        for (let i = 0; i < 8; i++) {
+            let angle = (frameCount * 0.1 + i * PI / 4) % TWO_PI;
+            let x = this.x + this.w / 2 + cos(angle) * this.powerups.effects.magnet.range;
+            let y = this.y + this.h / 2 + sin(angle) * this.powerups.effects.magnet.range;
+            fill(255, 255, 0, 150);
+            noStroke();
+            ellipse(x, y, 5, 5);
+        }
+    }
+    
     moveUp() {
         if (this.isLeader) {
             this.y -= 10;
@@ -976,11 +1087,16 @@ class Car {
     }
     
     activatePowerup(type) {
-        if (type === "super") type = "superHorn"; // Eski tip uyumluluğu
+        if (type === "super") type = "superHorn";
         this.powerups.active = type;
         this.powerups.timer = this.powerups.effects[type].duration;
+        this.powerups.collectedPoints = 0;
+        
         if (type === 'shield') {
             this.powerups.effects.shield.active = true;
+        } else if (type === 'magnet') {
+            this.powerups.effects.magnet.active = true;
+            this.powerups.scoreMultiplier = this.powerups.effects.magnet.scoreMultiplier;
         }
     }
     
@@ -988,6 +1104,8 @@ class Car {
         this.powerups.active = null;
         this.powerups.timer = 0;
         this.powerups.effects.shield.active = false;
+        this.powerups.effects.magnet.active = false;
+        this.powerups.scoreMultiplier = 1;
     }
     
     checkCollision(other) {
@@ -997,6 +1115,46 @@ class Car {
             this.collisionBox.y < other.y + other.h &&
             this.collisionBox.y + this.collisionBox.h > other.y
         );
+    }
+
+    attractPowerups() {
+        for (let i = 0; i < powerups.length; i++) {
+            let p = powerups[i];
+            let d = dist(this.x + this.w / 2, this.y + this.h / 2, p.x + p.w / 2, p.y + p.h / 2);
+            if (d < this.powerups.effects.magnet.range) {
+                let angle = atan2(this.y + this.h / 2 - p.y - p.h / 2, this.x + this.w / 2 - p.x - p.w / 2);
+                let speed = map(d, 0, this.powerups.effects.magnet.range, 10, 2);
+                p.x += cos(angle) * speed;
+                p.y += sin(angle) * speed;
+                
+                // Mıknatıs efekti
+                if (frameCount % 5 === 0) {
+                    this.powerups.collectedPoints++;
+                    if (this.powerups.collectedPoints % 10 === 0) {
+                        score += this.powerups.effects.magnet.scoreMultiplier;
+                        showAchievement("Mıknatıs Bonusu: +" + this.powerups.effects.magnet.scoreMultiplier, 1000);
+                    }
+                }
+            }
+        }
+    }
+
+    attractPoints() {
+        // Puanları çekme efekti
+        for (let i = houses.length - 1; i >= 0; i--) {
+            let h = houses[i];
+            if (h.pointsAnimation) {
+                let d = dist(this.x + this.w / 2, this.y + this.h / 2, 
+                           h.x + h.w / 2, h.pointsAnimation.y);
+                if (d < this.powerups.effects.magnet.range) {
+                    let angle = atan2(this.y + this.h / 2 - h.pointsAnimation.y, 
+                                    this.x + this.w / 2 - h.x - h.w / 2);
+                    let speed = map(d, 0, this.powerups.effects.magnet.range, 8, 1);
+                    h.pointsAnimation.y += sin(angle) * speed;
+                    h.pointsAnimation.x += cos(angle) * speed;
+                }
+            }
+        }
     }
 }
 
@@ -1257,7 +1415,7 @@ class Powerup {
         this.h = 25;
         this.x = width + random(50, 150);
         this.y = height * 0.75 - random(40, 80);
-        this.type = random(["superHorn", "turbo", "multiplier", "shield"]);
+        this.type = random(["superHorn", "turbo", "multiplier", "shield", "timeFreeze", "magnet", "clone", "extraTime"]);
         this.speed = 2 + (level - 1) * 0.2;
         if (gameMode === "crazy") {
             this.speed *= 1.4;
@@ -1310,6 +1468,38 @@ class Powerup {
                 textAlign(CENTER, CENTER);
                 text("🛡️", this.x + this.w / 2, this.y + this.h / 2 + this.floatOffset);
                 break;
+            case "timeFreeze":
+                fill(0, 255, 255);
+                ellipse(this.x + this.w / 2, this.y + this.h / 2 + this.floatOffset, this.w, this.h);
+                fill(255);
+                textSize(14);
+                textAlign(CENTER, CENTER);
+                text("⏱️", this.x + this.w / 2, this.y + this.h / 2 + this.floatOffset);
+                break;
+            case "magnet":
+                fill(255, 0, 0);
+                ellipse(this.x + this.w / 2, this.y + this.h / 2 + this.floatOffset, this.w, this.h);
+                fill(255);
+                textSize(14);
+                textAlign(CENTER, CENTER);
+                text("🧲", this.x + this.w / 2, this.y + this.h / 2 + this.floatOffset);
+                break;
+            case "clone":
+                fill(0, 255, 0);
+                ellipse(this.x + this.w / 2, this.y + this.h / 2 + this.floatOffset, this.w, this.h);
+                fill(255);
+                textSize(14);
+                textAlign(CENTER, CENTER);
+                text("👥", this.x + this.w / 2, this.y + this.h / 2 + this.floatOffset);
+                break;
+            case "extraTime":
+                fill(255, 255, 0);
+                ellipse(this.x + this.w / 2, this.y + this.h / 2 + this.floatOffset, this.w, this.h);
+                fill(0);
+                textSize(14);
+                textAlign(CENTER, CENTER);
+                text("+10s", this.x + this.w / 2, this.y + this.h / 2 + this.floatOffset);
+                break;
         }
         
         textSize(20);
@@ -1321,14 +1511,22 @@ class Powerup {
     }
     
     activate() {
-        car.activatePowerup(this.type);
-        let powerupName = "";
-        switch (this.type) {
-            case "superHorn": powerupName = "Süper Korna"; break;
-            case "turbo": powerupName = "Turbo Hız"; break;
-            case "multiplier": powerupName = "3× Puan"; break;
-            case "shield": powerupName = "Kalkan"; break;
+        if (this.type === "extraTime") {
+            remainingTime += 10;
+            showAchievement("+10 Saniye!", 2000);
+        } else {
+            car.activatePowerup(this.type);
+            let powerupName = "";
+            switch (this.type) {
+                case "superHorn": powerupName = "Süper Korna"; break;
+                case "turbo": powerupName = "Turbo Hız"; break;
+                case "multiplier": powerupName = "3× Puan"; break;
+                case "shield": powerupName = "Kalkan"; break;
+                case "timeFreeze": powerupName = "Zaman Dondurma"; break;
+                case "magnet": powerupName = "Mıknatıs"; break;
+                case "clone": powerupName = "Klon"; break;
+            }
+            showAchievement("Güçlendirici: " + powerupName, 2000);
         }
-        showAchievement("Güçlendirici: " + powerupName, 2000);
     }
 }

@@ -166,11 +166,18 @@
             margin: 0 5px;
             cursor: pointer;
             opacity: 0.7;
+            transition: all 0.3s;
+        }
+        
+        .modeBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 8px rgba(0,0,0,0.3);
         }
         
         .modeBtn.active {
             opacity: 1;
             box-shadow: 0 0 10px #a8dadc;
+            transform: scale(1.05);
         }
         
         #achievement {
@@ -191,6 +198,24 @@
             from { top: -50px; opacity: 0; }
             to { top: 20px; opacity: 1; }
         }
+        
+        .powerup-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .powerup-item {
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .powerup-item strong {
+            color: #e63946;
+        }
     </style>
     <!-- P5.js kütüphanesi -->
     <script src="https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/p5.min.js"></script>
@@ -201,7 +226,6 @@
     <h2>Düğün konvoyunda korna çalarak insanları selamla!</h2>
     
     <div id="gameContainer">
-        <!-- Canvas buraya yerleştirilecek -->
         <div id="splashScreen">
             <h1 style="font-size: 36px;">Korna Party</h1>
             <h2 style="color: white;">Düğün Konvoyuyla kornak çalarak insanları rahatsız et.</h2>
@@ -209,10 +233,13 @@
                 <button class="modeBtn active" data-mode="normal">Normal Mod</button>
                 <button class="modeBtn" data-mode="crazy">Çılgın Konvoy</button>
                 <button class="modeBtn" data-mode="night">Gece Konvoyu</button>
+                <button class="modeBtn" data-mode="zombie">Zombi Konvoyu</button>
+                <button class="modeBtn" data-mode="rainbow">Gökkuşağı</button>
+                <button class="modeBtn" data-mode="boss">Boss Savaşı</button>
             </div>
             <button id="startButton">OYUNA BAŞLA</button>
         </div>
-        <div id="achievement">🏆 Başarı Kazanıldı: Korna Ustası!</div>
+        <div id="achievement">🏆 Başarı Kazanıldı!</div>
     </div>
     
     <div id="instructions">
@@ -223,14 +250,43 @@
             <li><span class="key">P</span> - Oyunu duraklat</li>
             <li><span class="key">ENTER</span> - Oyun bittiğinde tekrar başlat</li>
         </ul>
+        
         <p><strong>Amaç:</strong> Evlerdeki insanlara korna çalarak selam ver ve puan topla! Engellere dikkat et ve güçlendiricileri yakala.</p>
-        <p><strong>Güçlendiriciler:</strong></p>
+        
+        <p><strong>Oyun Modları:</strong></p>
         <ul>
-            <li>🔔 <strong>Süper Korna</strong> - Kornayı güçlendirir ve 2x puan kazandırır</li>
-            <li>⏱️ <strong>Ekstra Zaman</strong> - Oyun süresine 10 saniye ekler</li>
-            <li>🚀 <strong>Turbo Hız</strong> - Geçici olarak daha hızlı hareket etmenizi sağlar</li>
-            <li>🌟 <strong>Puan Çarpanı</strong> - Kısa süreliğine 3x puan kazandırır</li>
+            <li>🚗 <strong>Normal Mod</strong> - Klasik oyun deneyimi</li>
+            <li>🎉 <strong>Çılgın Konvoy</strong> - Daha hızlı ve zorlu</li>
+            <li>🌙 <strong>Gece Konvoyu</strong> - Karanlıkta sürüş</li>
+            <li>🧟 <strong>Zombi Konvoyu</strong> - Zombilerden kaç</li>
+            <li>🌈 <strong>Gökkuşağı</strong> - Renkli ve psychedelic</li>
+            <li>👾 <strong>Boss Savaşı</strong> - Her 5 seviyede bir boss</li>
         </ul>
+        
+        <p><strong>Güçlendiriciler:</strong></p>
+        <div class="powerup-list">
+            <div class="powerup-item">
+                <strong>🔔 Süper Korna</strong> - Kornayı güçlendirir ve 2x puan kazandırır
+            </div>
+            <div class="powerup-item">
+                <strong>⏱️ Ekstra Zaman</strong> - Oyun süresine 10 saniye ekler
+            </div>
+            <div class="powerup-item">
+                <strong>🚀 Turbo Hız</strong> - Geçici olarak daha hızlı hareket etmenizi sağlar
+            </div>
+            <div class="powerup-item">
+                <strong>🌟 Puan Çarpanı</strong> - Kısa süreliğine 3x puan kazandırır
+            </div>
+            <div class="powerup-item">
+                <strong>🧲 Mıknatıs</strong> - Güçlendiricileri ve puanları kendine çeker
+            </div>
+            <div class="powerup-item">
+                <strong>⏱️ Zaman Dondurma</strong> - Zamanı yavaşlatır
+            </div>
+            <div class="powerup-item">
+                <strong>👥 Klon</strong> - Konvoyu ikiye katlar
+            </div>
+        </div>
         
         <div id="controls">
             <div class="control-group">
